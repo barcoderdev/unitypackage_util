@@ -1,0 +1,51 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-macos:
+    runs-on: macos-11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cargo build
+        run: cargo build --verbose --release
+        shell: bash
+
+      - name: Run unitypackage_util help
+        run: ./target/release/unitypackage_util --help
+        shell: bash
+
+      - name: Adhoc signature
+        run: |
+          codesign -s - --options=runtime target/release/unitypackage_util
+        shell: bash
+
+      - name: Prepare artifacts
+        run: |
+          export TARGET=unitypackage_util-macos-x86_64
+          mkdir $TARGET
+          cp LICENSE $TARGET/unitypackage_util-License.txt
+          cp target/release/unitypackage_util $TARGET/unitypackage_util-macos-x86_64
+          7z a -r $TARGET.zip $TARGET
+        shell: bash
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: unitypackage_util-macos-x86_64.zip
+
+      - name: unitypackage_util-macos-x86_64
+        uses: actions/upload-artifact@v3
+        with:
+          name: unitypackage_util-macos-x86_64
+          path: unitypackage_util-macos-x86_64/*
