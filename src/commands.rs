@@ -299,7 +299,13 @@ pub fn package_file_extract(
 //----------------------------------------
 
 pub fn convert_fbx2gltf(buf: &mut Vec<u8>, base64: bool) -> Result<(), std::io::Error> {
-    let process = Command::new("./FBX2glTF")
+    let program = if cfg!(windows) {
+        "FBX2glTF.exe"
+    } else {
+        "./FBX2glTF"
+    };
+
+    let process = Command::new(program)
         .arg("-IO")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
