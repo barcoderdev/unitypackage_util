@@ -107,7 +107,7 @@ jobs:
           export TARGET=unitypackage_util-linux-x86_64
           mkdir $TARGET
           cp LICENSE $TARGET/unitypackage_util-License.txt
-          cp build/unitypackage_util $TARGET/unitypackage_util-linux-x86_64
+          cp target/release/unitypackage_util $TARGET/unitypackage_util-linux-x86_64
           7z a -r $TARGET.zip $TARGET
         shell: bash
 
