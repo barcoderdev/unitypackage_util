@@ -49,14 +49,14 @@ pub fn asset_yaml_cleanup(yaml: &str) -> String {
                 // And add the class_id, file_id, and extra
                 // TODO: Account for multi-line strings in a better way
                 format!(
-                    "type: {}\ncontent:\n  _class_id: {}\n  _file_id: {}\n  _extra: {}\n",
-                    line.replace(":", ""),
+                    "_class_id: {}\n_file_id: {}\n_extra: {}\ntype: {}\ncontent:\n",
                     class_id,
                     file_id,
                     match extra {
                         Some(ref s) => format!("{}\n", s),
                         None => "".to_string(),
-                    }
+                    },
+                    line.replace(":", ""),
                 )
             } else {
                 // Keep the usual field lines
@@ -116,7 +116,7 @@ pub fn asset_meta_yaml_cleanup(yaml: &str) -> String {
         .collect::<String>()
         .add(
             format!(
-                "  _fileFormatVersion: {}\n  _guid: {}\n  _folderAsset: {}\n",
+                "fileFormatVersion: {}\nguid: {}\nfolderAsset: {}\n",
                 file_format_version,
                 guid,
                 match folder_asset {
