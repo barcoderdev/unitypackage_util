@@ -17,3 +17,4 @@ serde_yaml = "0.9.21"
 tar = "0.4.38"
 unity-yaml-rust = "0.1.1"
 walkdir = "2.3.3"
+xxhash-rust = { version = "0.8.6", features = ["xxh64"] }

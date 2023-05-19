@@ -87,6 +87,10 @@ enum Commands {
         /// Base64 encode output
         #[arg(short, long)]
         base64: bool,
+    },
+    XxHash {
+        #[arg(required = true)]
+        text: String,
     }
 }
 
@@ -149,6 +153,9 @@ fn main() {
                     println!("{} {}", size, path.display());
                 }
             }
+        }
+        &Some(Commands::XxHash { ref text }) => {
+            commands::xx_hash(text);
         }
         &None => (),
     }

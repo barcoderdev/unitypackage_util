@@ -11,6 +11,8 @@ use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use unitypackage_util;
 
+use xxhash_rust::xxh64;
+
 use crate::package;
 
 //----------------------------------------
@@ -323,6 +325,12 @@ pub fn convert_fbx2gltf(buf: &mut Vec<u8>, base64: bool) -> Result<(), std::io::
 
     std::io::stdout().write_all(&buffer)?;
     Ok(())
+}
+
+//----------------------------------------
+
+pub fn xx_hash(text: &str) {
+    print!("{}", xxh64::xxh64(text.as_bytes(), 0) as i64)
 }
 
 //----------------------------------------

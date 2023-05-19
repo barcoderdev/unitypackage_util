@@ -18,8 +18,8 @@ const UNITY_MACRO: &str = "--- !u!";
 //----------------------------------------
 
 pub fn asset_yaml_cleanup(yaml: &str) -> String {
-    let mut class_id: u128 = 0;
-    let mut file_id: u128 = 0;
+    let mut class_id: i32 = 0;
+    let mut file_id: i64 = 0;
     let mut extra: Option<String> = None;
 
     yaml.lines()
