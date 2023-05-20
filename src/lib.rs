@@ -11,6 +11,8 @@ use std::{
     ops::Add,
 };
 
+use regex::Regex;
+
 //----------------------------------------
 
 const UNITY_MACRO: &str = "--- !u!";
@@ -21,6 +23,8 @@ pub fn asset_yaml_cleanup(yaml: &str) -> String {
     let mut class_id: i32 = 0;
     let mut file_id: i64 = 0;
     let mut extra: Option<String> = None;
+
+    let re = Regex::new(r"fileID: (\d+)").unwrap();
 
     yaml.lines()
         .into_iter()
@@ -49,7 +53,7 @@ pub fn asset_yaml_cleanup(yaml: &str) -> String {
                 // And add the class_id, file_id, and extra
                 // TODO: Account for multi-line strings in a better way
                 format!(
-                    "_class_id: {}\n_file_id: {}\n_extra: {}\ntype: {}\ncontent:\n",
+                    "_class_id: {}\n_file_id: \"{}\"\n_extra: {}\ntype: {}\ncontent:\n",
                     class_id,
                     file_id,
                     match extra {
@@ -60,7 +64,8 @@ pub fn asset_yaml_cleanup(yaml: &str) -> String {
                 )
             } else {
                 // Keep the usual field lines
-                format!("{line}\n")
+                let k = re.replace(line, "fileID: \"$1\"");
+                format!("{k}\n")
             }
         })
         .collect::<String>()
@@ -74,6 +79,8 @@ pub fn asset_meta_yaml_cleanup(yaml: &str) -> String {
     let mut folder_asset: Option<bool> = None;
     let mut time_created = "".to_string();
     let mut license_type = "".to_string();
+
+    let re = Regex::new(r"fileID: (\d+)").unwrap();
 
     yaml.lines()
         .into_iter()
@@ -110,7 +117,8 @@ pub fn asset_meta_yaml_cleanup(yaml: &str) -> String {
                 format!("type: {}\ncontent:\n", line.replace(":", ""))
             } else {
                 // Keep the usual field lines
-                format!("{line}\n")
+                let k = re.replace(line, "fileID: \"$1\"");
+                format!("{k}\n")
             }
         })
         .collect::<String>()
