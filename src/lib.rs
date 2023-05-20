@@ -24,7 +24,7 @@ pub fn asset_yaml_cleanup(yaml: &str) -> String {
     let mut file_id: i64 = 0;
     let mut extra: Option<String> = None;
 
-    let re = Regex::new(r"fileID: (\d+)").unwrap();
+    let re = Regex::new(r"fileID: ([\-0-9]+)").unwrap();
 
     yaml.lines()
         .into_iter()
@@ -80,7 +80,7 @@ pub fn asset_meta_yaml_cleanup(yaml: &str) -> String {
     let mut time_created = "".to_string();
     let mut license_type = "".to_string();
 
-    let re = Regex::new(r"fileID: (\d+)").unwrap();
+    let re = Regex::new(r"fileID: ([\-0-9]+)").unwrap();
 
     yaml.lines()
         .into_iter()
