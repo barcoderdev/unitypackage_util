@@ -25,11 +25,17 @@ pub fn asset_yaml_cleanup(yaml: &str) -> String {
     let mut extra: Option<String> = None;
 
     let re = Regex::new(r"fileID: ([\-0-9]+)").unwrap();
+    let m_name_re = Regex::new(r"m_Name:").unwrap();
+
+    // Hacky fix for some MonoBehaviors having multiple m_Name's
+    // See https://github.com/barcoderdev/unitypackage_godot/issues/14
+    let mut m_name_count: u8 = 0;
 
     yaml.lines()
         .into_iter()
         .map(|line| {
             if line.starts_with(UNITY_MACRO) {
+                m_name_count = 0;
                 // Split "--- !u!CLASS_ID &FILE_ID EXTRA" into parts
                 let mut chunks = line[UNITY_MACRO.len()..]
                     .trim()
@@ -63,9 +69,20 @@ pub fn asset_yaml_cleanup(yaml: &str) -> String {
                     line.replace(":", ""),
                 )
             } else {
-                // Keep the usual field lines
-                let k = re.replace(line, "fileID: \"$1\"");
-                format!("{k}\n")
+                if line.starts_with("  m_Name:") {
+                    m_name_count += 1;
+                    if m_name_count == 1 {
+                        format!("{line}\n")
+                    } else {
+                        let k =
+                            m_name_re.replace(line, format!("m_Name{}:", m_name_count - 1).as_str());
+                        format!("{k}\n")
+                    }
+                } else {
+                    // Keep the usual field lines
+                    let k = re.replace(line, "fileID: \"$1\"");
+                    format!("{k}\n")
+                }
             }
         })
         .collect::<String>()
