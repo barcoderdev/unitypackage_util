@@ -18,8 +18,12 @@ use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(
-    author, version, about, long_about = None,
-    arg_required_else_help = true, subcommand_required = true
+    author,
+    version,
+    about,
+    long_about = None,
+    arg_required_else_help = true,
+    subcommand_required = true
 )]
 struct Cli {
     /// Unity Package (Tar, TarGz, or Folder)
@@ -33,9 +37,12 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Test,
+    // Test,
+    /// Find source of dump crashes
+    Debug,
     /// Show package info
     Info,
+    /// Display path from guid/pathname file
     Name {
         guid: String,
     },
@@ -88,6 +95,7 @@ enum Commands {
         #[arg(short, long)]
         base64: bool,
     },
+    /// Calculate xxhash 64 of string
     XxHash {
         #[arg(required = true)]
         text: String,
@@ -109,7 +117,7 @@ fn main() {
             );
         }
         &Some(Commands::Dump { pretty }) => {
-            commands::package_contents_dump(package_path, pretty);
+            commands::package_contents_dump(package_path, pretty, false);
         }
         &Some(Commands::Name { ref guid }) => {
             commands::package_contents_name(package_path, guid);
@@ -141,18 +149,21 @@ fn main() {
                 base64,
             );
         }
-        &Some(Commands::Test) => {
-            let package = package::Package::new(package_path);
-            // println!("{:?}", package);
+        // &Some(Commands::Test) => {
+        //     let package = package::Package::new(package_path);
+        //     // println!("{:?}", package);
 
-            if let Ok(package) = package {
-                let result = package.open();
-                for file in result.unwrap().entries() {
-                    let size = file.as_ref().unwrap().size().unwrap();
-                    let path = file.as_ref().unwrap().path().unwrap();
-                    println!("{} {}", size, path.display());
-                }
-            }
+        //     if let Ok(package) = package {
+        //         let result = package.open();
+        //         for file in result.unwrap().entries() {
+        //             let size = file.as_ref().unwrap().size().unwrap();
+        //             let path = file.as_ref().unwrap().path().unwrap();
+        //             println!("{} {}", size, path.display());
+        //         }
+        //     }
+        // }
+        &Some(Commands::Debug) => {
+            commands::package_contents_dump(package_path, false, true);
         }
         &Some(Commands::XxHash { ref text }) => {
             commands::xx_hash(text);

@@ -47,9 +47,28 @@ pub fn deserializer(yaml: &String) -> serde_yaml::Value {
         .collect()
 }
 
+/*
+// This allows it to continue but removes the whole sub-document if it fails to deserialize
+// unitypackage_godot needs to be update to handle this before implementing
+
+    serde_yaml::Deserializer::from_str(&yaml)
+        .map(|doc| {
+            let res = <serde_yaml::Value>::deserialize(doc);
+            match res {
+                Ok(res) => res,
+                Err(_e) => {
+                    // std::io::stderr()
+                    //     .write_all(format!("Deserialize Error: {:?}\n", e).as_bytes())
+                    //     .unwrap();
+                    serde_yaml::Value::String("".to_owned())
+                }
+            }
+        })
+        .collect()
+ */
 //----------------------------------------
 
-pub fn package_contents_dump(package_file: &str, pretty: bool) {
+pub fn package_contents_dump(package_file: &str, pretty: bool, debug: bool) {
     let mut data = HashMap::<String, Dump>::new();
 
     let mut info = infer::Infer::new();
@@ -73,8 +92,6 @@ pub fn package_contents_dump(package_file: &str, pretty: bool) {
             continue;
         }
 
-        // println!("guid: {:?}", guid);
-
         let entry = data.entry(guid.clone()).or_insert_with(|| Dump {
             pathname: None,
             content_type: None,
@@ -84,6 +101,10 @@ pub fn package_contents_dump(package_file: &str, pretty: bool) {
 
         // println!("checking pathname");
         if file_path.ends_with("/pathname") {
+            if debug {
+                println!("{}/pathname", guid);
+            }
+
             let mut s = String::new();
             file.read_to_string(&mut s).unwrap();
 
@@ -92,6 +113,10 @@ pub fn package_contents_dump(package_file: &str, pretty: bool) {
 
         // println!("checking asset.meta");
         if file_path.ends_with("/asset.meta") {
+            if debug {
+                println!("{}/asset.meta", guid);
+            }
+
             let mut yaml = String::new();
             file.read_to_string(&mut yaml).unwrap();
 
@@ -103,6 +128,10 @@ pub fn package_contents_dump(package_file: &str, pretty: bool) {
 
         // println!("checking asset");
         if file_path.ends_with("/asset") {
+            if debug {
+                println!("{}/asset", guid);
+            }
+
             let mut buffer = Vec::with_capacity(size);
             file.read_to_end(&mut buffer).unwrap();
 
@@ -120,7 +149,9 @@ pub fn package_contents_dump(package_file: &str, pretty: bool) {
         }
     }
 
-    println!("{}", serde_json_to_string(&data, pretty));
+    if !debug {
+        println!("{}", serde_json_to_string(&data, pretty));
+    }
 }
 
 //----------------------------------------
@@ -143,7 +174,7 @@ pub fn package_contents_name(package_file: &str, guid: &str) {
             let mut s = String::new();
             file.read_to_string(&mut s).unwrap();
 
-            println!("{}", s);
+            println!("{}", s.split("\n").next().unwrap());
             return;
         }
     }
@@ -198,7 +229,7 @@ pub fn package_contents_list(
             if include {
                 let guid = Path::new(&file_path);
                 let guid = guid.parent().unwrap().to_str().unwrap();
-                contents.push([guid.to_owned(), pathname.to_owned()]);
+                contents.push([guid.to_owned(), pathname.split("\n").next().unwrap().to_owned()]);
             }
         }
     }
