@@ -182,13 +182,14 @@ pub fn package_contents_list(
         if file_path.ends_with("/pathname") {
             let mut pathname = String::new();
             file.read_to_string(&mut pathname).unwrap();
+            if pathname.contains("\n") {
+                pathname = format!("{}", pathname.split("\n").next().unwrap());
+            }
 
             let mut include = true;
 
             if let Some(dir) = dir {
-                let tmp_file_path = format!("{}", pathname.split("\n").next().unwrap());
-
-                let path = Path::new(&tmp_file_path);
+                let path = Path::new(&pathname);
                 let parent = path.parent().unwrap().to_str().unwrap();
 
                 //println!("Looking for {} in {} || {}", dir, s, parent);
