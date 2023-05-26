@@ -206,7 +206,8 @@ pub fn package_contents_list(
         let file_path = file.path().unwrap().to_str().unwrap().to_owned();
         // let size = file.size().unwrap();
 
-        if file_path.len() < 32 {
+        let guid = file.guid();
+        if guid.len() < 32 {
             continue;
         }
 
@@ -227,8 +228,6 @@ pub fn package_contents_list(
             }
 
             if include {
-                let guid = Path::new(&file_path);
-                let guid = guid.parent().unwrap().to_str().unwrap();
                 contents.push([guid.to_owned(), pathname.split("\n").next().unwrap().to_owned()]);
             }
         }
