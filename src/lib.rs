@@ -74,8 +74,8 @@ pub fn asset_yaml_cleanup(yaml: &str) -> String {
                     if m_name_count == 1 {
                         format!("{line}\n")
                     } else {
-                        let k =
-                            m_name_re.replace(line, format!("m_Name{}:", m_name_count - 1).as_str());
+                        let k = m_name_re
+                            .replace(line, format!("m_Name{}:", m_name_count - 1).as_str());
                         format!("{k}\n")
                     }
                 } else {
@@ -99,10 +99,32 @@ pub fn asset_meta_yaml_cleanup(yaml: &str) -> String {
 
     let re = Regex::new(r"fileID: ([\-0-9]+)").unwrap();
 
+    /*
+    // Temporary fix to allow deserialize of asset meta files
+    // TODO: Find a better way to do this
+
+        fileFormatVersion: 2
+        guid: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        labels:
+        - a
+        - b
+        MonoImporter:
+          ...  
+     */
+    let mut inside_labels: bool = false;
+    let mut labels: Vec<String> = Vec::new();
+
     yaml.lines()
         .into_iter()
         .map(|line| {
-            if line.starts_with("fileFormatVersion:") {
+            if inside_labels && !line.starts_with("-") {
+                inside_labels = false;
+            }
+
+            if inside_labels {
+                labels.push(line.trim().to_string());
+                "".to_owned()
+            } else if line.starts_with("fileFormatVersion:") {
                 let mut split = line.split(":");
                 split.next().unwrap();
                 file_format_version = split.next().unwrap().trim().parse().unwrap();
@@ -129,6 +151,9 @@ pub fn asset_meta_yaml_cleanup(yaml: &str) -> String {
                     None
                 };
                 "".to_owned()
+            } else if line.starts_with("labels:") {
+                inside_labels = true;
+                "".to_owned()
             } else if !line.starts_with(" ") {
                 // Replace "DefaultImporter:"(or other) with "type: DefaultImporter" and "content:"
                 format!("type: {}\ncontent:\n", line.replace(":", ""))
@@ -141,13 +166,17 @@ pub fn asset_meta_yaml_cleanup(yaml: &str) -> String {
         .collect::<String>()
         .add(
             format!(
-                "fileFormatVersion: {}\nguid: {}\nfolderAsset: {}\n",
+                "fileFormatVersion: {}\nguid: {}\nfolderAsset: {}\n{}",
                 file_format_version,
                 guid,
                 match folder_asset {
                     Some(ref s) => format!("{}\n", s),
                     None => "".to_string(),
-                }
+                },
+                match labels.len() {
+                    0 => "".to_string(),
+                    _ => format!("labels:\n{}\n", labels.join("\n")),
+                },
             )
             .as_str(),
         )
